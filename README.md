@@ -47,7 +47,7 @@ The plugin can follow complex selected copper geometry, including continuous tra
 
 ## Installation
 
-Copy the plugin folder into your KiCad 9 third-party plugins directory.
+Copy the via_fence folder from the archive into your KiCad 9 third-party plugins directory
 
 Typical Windows path:
 
