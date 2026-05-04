@@ -1,10 +1,13 @@
-# ViaFence for KiCad 9
+# ![ViaFence Logo](via_fence/via_fence_icon.png) ViaFence for KiCad 9
 
 **ViaFence** is a KiCad 9 Action Plugin that places via fences along selected tracks and arcs for EMI shielding, RF grounding, and improved return-current control.
 
 The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops.
 
 ---
+
+## Prewiev
+[![Watch the video](https://img.youtube.com/vi/hh38B16UxNY/0.jpg)](https://www.youtube.com/watch?v=hh38B16UxNY)
 
 ## Features
 
