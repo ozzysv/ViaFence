@@ -1,0 +1,22 @@
+{
+    "identifier": "via_fence",
+    "name": "ViaFence",
+    "description": "Place via fence along selected tracks for EMI shielding",
+    "version": "1.0.0",
+    "author": "Your Name",
+    "runtime": {
+        "type": "python",
+        "min_version": "3.9"
+    },
+    "actions": [
+        {
+            "identifier": "via_fence",
+            "name": "ViaFence",
+            "description": "Place vias along selected tracks",
+            "show-button": true,
+            "scopes": ["pcb"],
+            "entrypoint": "via_fence.py",
+            "icons-light": ["via_fence_icon.png"]
+        }
+    ]
+}
