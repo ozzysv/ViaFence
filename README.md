@@ -52,7 +52,7 @@ Copy the via_fence folder from the archive into your KiCad 9 third-party plugins
 Typical Windows path:
 
 ```text
-C:\Users\<User>\Documents\KiCad\9.0\3rdparty\plugins\via_fence
+C:\Users\<User>\Documents\KiCad\9.0\3rdparty\plugins
 ```
 
 The folder should contain:
