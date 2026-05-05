@@ -1,6 +1,6 @@
-# ![ViaFence Logo](src/via_fence_icon.png) ViaFence for KiCad 9
+# ![ViaFence Logo](src/via_fence_icon.png) ViaFence for KiCad 9 and 10
 
-**ViaFence** is a KiCad 9 Action Plugin that places via fences along selected tracks and arcs for EMI shielding, RF grounding, and improved return-current control.
+**ViaFence** is a KiCad 9 and KiCad 10 Action Plugin that places via fences along selected tracks and arcs for EMI shielding, RF grounding, and improved return-current control.
 
 The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops.
 
@@ -43,7 +43,7 @@ The plugin can follow complex selected copper geometry, including continuous tra
 
 ## Requirements
 
-- KiCad 9.0 or newer
+- KiCad 9.0 and KiCad 10.0 
 - Python 3.9 or newer
 - wxPython, included with KiCad's Python environment
 
