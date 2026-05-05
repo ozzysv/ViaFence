@@ -167,16 +167,17 @@ Example:
 
 ```json
 {
-  "spacing_mm": 0.7,
+  "spacing_mm": 0.8,
   "track_to_via_gap_mm": 0.3,
   "via_diameter_mm": 0.6,
   "via_drill_mm": 0.3,
-  "end_margin_mm": 1.0,
+  "end_margin_mm": 0.1,
   "staggered": false,
   "net_name": "GND",
   "show_stats": true,
   "place_at_corners": true,
-  "corner_angle_deg": 50.0
+  "corner_angle_deg": 50.0,
+  "units": "mm"
 }
 ```
 
