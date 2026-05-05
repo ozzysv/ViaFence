@@ -6,8 +6,8 @@ The plugin can follow complex selected copper geometry, including continuous tra
 
 ---
 
-## Prewiev
-[![Watch the video](https://img.youtube.com/vi/hh38B16UxNY/0.jpg)](https://www.youtube.com/watch?v=hh38B16UxNY)
+## Demo
+<img src="doc/demo.gif" width="500"/>
 
 ## Features
 
