@@ -37,6 +37,7 @@ The plugin can follow complex selected copper geometry, including continuous tra
 - Grid-based collision index for better performance on larger boards
 - Stores settings in `via_fence_cfg.json`
 - Groups generated vias as `ViaFence (<net>)`
+- Measurement unit selection (mm / mils) and automatic conversion
 
 ---
 
