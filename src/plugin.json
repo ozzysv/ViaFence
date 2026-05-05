@@ -2,7 +2,7 @@
     "identifier": "via_fence",
     "name": "ViaFence",
     "description": "Place via fence along selected tracks for EMI shielding",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Your Name",
     "runtime": {
         "type": "python",

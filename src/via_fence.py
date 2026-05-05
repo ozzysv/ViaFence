@@ -25,7 +25,7 @@ class ViaFenceConfig:
     def __init__(self, spacing_mm=2.0, track_to_via_gap_mm=0.2, 
                  via_diameter_mm=0.6, via_drill_mm=0.3, 
                  end_margin_mm=1.0, staggered=False, net_name="",
-                 show_stats=True, place_at_corners=True, corner_angle_deg=30):
+                 show_stats=True, place_at_corners=True, corner_angle_deg=30, units="mm"):
         self.spacing_mm = spacing_mm
         self.track_to_via_gap_mm = track_to_via_gap_mm
         self.via_diameter_mm = via_diameter_mm
@@ -36,10 +36,38 @@ class ViaFenceConfig:
         self.show_stats = show_stats
         self.place_at_corners = place_at_corners
         self.corner_angle_deg = corner_angle_deg
+        self.units = units if units in ("mm", "mils") else "mm"
 
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "via_fence_cfg.json")
 VIA_TIMESTAMP = 55  # Special timestamp to identify vias created by this plugin
+PLUGIN_VERSION = "1.0.1"
+MM_PER_MIL = 0.0254
+
+
+def mm_to_mils(value_mm):
+    return value_mm / MM_PER_MIL
+
+
+def mils_to_mm(value_mils):
+    return value_mils * MM_PER_MIL
+
+
+def format_unit_value(value, decimals=4):
+    """Format dialog numbers without unnecessary trailing zeros."""
+    try:
+        s = f"{float(value):.{decimals}f}"
+        return s.rstrip('0').rstrip('.') if '.' in s else s
+    except Exception:
+        return str(value)
+
+
+def display_length(value_mm, unit):
+    """Return a length formatted for the currently selected display unit."""
+    if unit == "mils":
+        return f"{format_unit_value(mm_to_mils(value_mm), decimals=3)} mils"
+    return f"{format_unit_value(value_mm, decimals=4)} mm"
+
 
 
 def load_config():
@@ -58,7 +86,8 @@ def load_config():
                     net_name=data.get("net_name", ""),
                     show_stats=data.get("show_stats", True),
                     place_at_corners=data.get("place_at_corners", True),
-                    corner_angle_deg=data.get("corner_angle_deg", 30)
+                    corner_angle_deg=data.get("corner_angle_deg", 30),
+                    units=data.get("units", "mm")
                 )
         except:
             pass
@@ -78,19 +107,25 @@ def save_config(cfg):
                 "net_name": cfg.net_name,
                 "show_stats": cfg.show_stats,
                 "place_at_corners": cfg.place_at_corners,
-                "corner_angle_deg": cfg.corner_angle_deg
+                "corner_angle_deg": cfg.corner_angle_deg,
+                "units": cfg.units
             }, f, indent=2)
     except Exception:
         pass
 
 
-def parse_mm_value(ctrl, label, min_value=0.0, allow_zero=False):
-    """Read a wx.TextCtrl value as a positive mm float. Accepts both 0.7 and 0,7."""
+def parse_unit_value(ctrl, label, unit="mm", min_value=0.0, allow_zero=False):
+    """
+    Read a wx.TextCtrl value and return it in millimetres.
+    The dialog may display either mm or mils.
+    Accepts both 0.7 and 0,7.
+    """
     raw = ctrl.GetValue().strip().replace(',', '.')
     try:
         value = float(raw)
     except ValueError:
-        raise ValueError(f"{label}: enter a valid number, for example 0.7")
+        example = "0.7" if unit == "mm" else "27.56"
+        raise ValueError(f"{label}: enter a valid number, for example {example}")
 
     if allow_zero:
         if value < min_value:
@@ -98,7 +133,14 @@ def parse_mm_value(ctrl, label, min_value=0.0, allow_zero=False):
     else:
         if value <= min_value:
             raise ValueError(f"{label}: value must be > {min_value}")
-    return value
+
+    return mils_to_mm(value) if unit == "mils" else value
+
+
+def parse_mm_value(ctrl, label, min_value=0.0, allow_zero=False):
+    """Backward-compatible helper: read a value as millimetres."""
+    return parse_unit_value(ctrl, label, "mm", min_value, allow_zero)
+
 
 
 # ============================================================================
@@ -107,7 +149,7 @@ def parse_mm_value(ctrl, label, min_value=0.0, allow_zero=False):
 
 class ViaFenceDialog(wx.Dialog):
     def __init__(self, parent, board):
-        super().__init__(parent, title="ViaFence", size=(460, 560))
+        super().__init__(parent, title=f"ViaFence {PLUGIN_VERSION}", size=(460, 560))
         icon_path = os.path.join(os.path.dirname(__file__), "via_fence_icon.png")
         if os.path.exists(icon_path):
             icon = wx.Icon(icon_path, wx.BITMAP_TYPE_PNG)
@@ -115,13 +157,16 @@ class ViaFenceDialog(wx.Dialog):
         
         cfg = load_config()
         vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.unit = cfg.units if cfg.units in ("mm", "mils") else "mm"
+        self._unit_controls = []
         
         # Create controls
-        self.spacing = wx.TextCtrl(self, value=str(cfg.spacing_mm))
-        self.gap = wx.TextCtrl(self, value=str(cfg.track_to_via_gap_mm))
-        self.via_diam = wx.TextCtrl(self, value=str(cfg.via_diameter_mm))
-        self.drill = wx.TextCtrl(self, value=str(cfg.via_drill_mm))
-        self.margin = wx.TextCtrl(self, value=str(cfg.end_margin_mm))
+        self.spacing = wx.TextCtrl(self, value=format_unit_value(cfg.spacing_mm))
+        self.gap = wx.TextCtrl(self, value=format_unit_value(cfg.track_to_via_gap_mm))
+        self.via_diam = wx.TextCtrl(self, value=format_unit_value(cfg.via_diameter_mm))
+        self.drill = wx.TextCtrl(self, value=format_unit_value(cfg.via_drill_mm))
+        self.margin = wx.TextCtrl(self, value=format_unit_value(cfg.end_margin_mm))
         self.staggered = wx.CheckBox(self, label="Staggered pattern (alternating sides)")
         self.staggered.SetValue(cfg.staggered)
         
@@ -133,6 +178,14 @@ class ViaFenceDialog(wx.Dialog):
         # Show stats checkbox
         self.show_stats = wx.CheckBox(self, label="Show statistics after execution")
         self.show_stats.SetValue(cfg.show_stats)
+        
+        # Unit selection
+        self.unit_mm = wx.RadioButton(self, label="mm", style=wx.RB_GROUP)
+        self.unit_mils = wx.RadioButton(self, label="mils")
+        self.unit_mm.SetValue(self.unit == "mm")
+        self.unit_mils.SetValue(self.unit == "mils")
+        self.unit_mm.Bind(wx.EVT_RADIOBUTTON, self.on_unit_changed)
+        self.unit_mils.Bind(wx.EVT_RADIOBUTTON, self.on_unit_changed)
         
         # Help text for staggered pattern
         help_text = wx.StaticText(self, label="  Staggered: places one via per position, alternating left/right")
@@ -161,21 +214,44 @@ class ViaFenceDialog(wx.Dialog):
             self.net_choice.SetSelection(idx)
         
         # Layout
+        self.spacing_label = wx.StaticText(self, label="Via spacing (mm):")
+        self.gap_label = wx.StaticText(self, label="Track to via gap (mm):")
+        self.via_diam_label = wx.StaticText(self, label="Via diameter (mm):")
+        self.drill_label = wx.StaticText(self, label="Via drill (mm):")
+        self.margin_label = wx.StaticText(self, label="End margin (mm):")
+        self._unit_label_controls = [
+            (self.spacing_label, "Via spacing"),
+            (self.gap_label, "Track to via gap"),
+            (self.via_diam_label, "Via diameter"),
+            (self.drill_label, "Via drill"),
+            (self.margin_label, "End margin"),
+        ]
+        self._unit_controls = [self.spacing, self.gap, self.via_diam, self.drill, self.margin]
+
+        self.apply_initial_units()
+        self.update_unit_labels()
+
         fields = [
-            ("Via spacing (mm):", self.spacing),
-            ("Track to via gap (mm):", self.gap),
-            ("Via diameter (mm):", self.via_diam),
-            ("Via drill (mm):", self.drill),
-            ("End margin (mm):", self.margin),
-            ("Net:", self.net_choice),
+            (self.spacing_label, self.spacing),
+            (self.gap_label, self.gap),
+            (self.via_diam_label, self.via_diam),
+            (self.drill_label, self.drill),
+            (self.margin_label, self.margin),
+            (wx.StaticText(self, label="Net:"), self.net_choice),
         ]
         
-        for label, ctrl in fields:
+        for label_ctrl, ctrl in fields:
             row = wx.BoxSizer(wx.HORIZONTAL)
-            row.Add(wx.StaticText(self, label=label), 0, wx.ALL | wx.CENTER, 5)
+            row.Add(label_ctrl, 0, wx.ALL | wx.CENTER, 5)
             row.Add(ctrl, 1, wx.ALL | wx.EXPAND, 5)
             vbox.Add(row, 0, wx.EXPAND)
         
+        unit_row = wx.BoxSizer(wx.HORIZONTAL)
+        unit_row.Add(wx.StaticText(self, label="Units:"), 0, wx.ALL | wx.CENTER, 5)
+        unit_row.Add(self.unit_mm, 0, wx.ALL | wx.CENTER, 5)
+        unit_row.Add(self.unit_mils, 0, wx.ALL | wx.CENTER, 5)
+        vbox.Add(unit_row, 0, wx.EXPAND)
+
         # Separator line
         line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
         vbox.Add(line, 0, wx.EXPAND | wx.ALL, 10)
@@ -199,16 +275,60 @@ class ViaFenceDialog(wx.Dialog):
         
         self.SetSizerAndFit(vbox)
     
+    def apply_initial_units(self):
+        """Convert initial displayed values if the saved unit is mils."""
+        if self.unit != "mils":
+            return
+        for ctrl in self._unit_controls:
+            raw = ctrl.GetValue().strip().replace(',', '.')
+            if not raw:
+                continue
+            try:
+                value_mm = float(raw)
+            except ValueError:
+                continue
+            ctrl.SetValue(format_unit_value(mm_to_mils(value_mm), decimals=3))
+
+    def on_unit_changed(self, _event):
+        new_unit = "mils" if self.unit_mils.GetValue() else "mm"
+        if new_unit == self.unit:
+            return
+
+        old_unit = self.unit
+        for ctrl in self._unit_controls:
+            raw = ctrl.GetValue().strip().replace(',', '.')
+            if not raw:
+                continue
+            try:
+                value = float(raw)
+            except ValueError:
+                continue
+
+            if old_unit == "mm" and new_unit == "mils":
+                value = mm_to_mils(value)
+                ctrl.SetValue(format_unit_value(value, decimals=3))
+            elif old_unit == "mils" and new_unit == "mm":
+                value = mils_to_mm(value)
+                ctrl.SetValue(format_unit_value(value, decimals=4))
+
+        self.unit = new_unit
+        self.update_unit_labels()
+
+    def update_unit_labels(self):
+        for label_ctrl, base_label in self._unit_label_controls:
+            label_ctrl.SetLabel(f"{base_label} ({self.unit}):")
+        self.Layout()
+
     def get_config(self):
         net_name = self.net_choice.GetStringSelection()
         if not net_name:
             raise ValueError("Net: select a valid net")
 
-        spacing_mm = parse_mm_value(self.spacing, "Via spacing", 0.0)
-        gap_mm = parse_mm_value(self.gap, "Track to via gap", 0.0, allow_zero=True)
-        via_diameter_mm = parse_mm_value(self.via_diam, "Via diameter", 0.0)
-        via_drill_mm = parse_mm_value(self.drill, "Via drill", 0.0)
-        end_margin_mm = parse_mm_value(self.margin, "End margin", 0.0, allow_zero=True)
+        spacing_mm = parse_unit_value(self.spacing, "Via spacing", self.unit, 0.0)
+        gap_mm = parse_unit_value(self.gap, "Track to via gap", self.unit, 0.0, allow_zero=True)
+        via_diameter_mm = parse_unit_value(self.via_diam, "Via diameter", self.unit, 0.0)
+        via_drill_mm = parse_unit_value(self.drill, "Via drill", self.unit, 0.0)
+        end_margin_mm = parse_unit_value(self.margin, "End margin", self.unit, 0.0, allow_zero=True)
         corner_angle_deg = parse_mm_value(self.corner_angle, "Min corner angle", 0.0)
 
         if via_drill_mm >= via_diameter_mm:
@@ -226,7 +346,8 @@ class ViaFenceDialog(wx.Dialog):
             net_name=net_name,
             show_stats=self.show_stats.GetValue(),
             place_at_corners=self.place_corners.GetValue(),
-            corner_angle_deg=corner_angle_deg
+            corner_angle_deg=corner_angle_deg,
+            units=self.unit
         )
 
 
@@ -1014,10 +1135,11 @@ class ViaFencePlugin(pcbnew.ActionPlugin):
                 f"├─ T/junction nodes: {path_stats['junctions']}\n"
                 f"├─ Closed loops: {path_stats['loops']}\n"
                 f"├─ Skipped candidates: {skipped_candidates}\n"
-                f"├─ Spacing: {cfg.spacing_mm} mm\n"
-                f"├─ Gap: {cfg.track_to_via_gap_mm} mm\n"
-                f"├─ Via diameter: {cfg.via_diameter_mm} mm\n"
-                f"├─ Via drill: {cfg.via_drill_mm} mm\n"
+                f"├─ Units: {cfg.units}\n"
+                f"├─ Spacing: {display_length(cfg.spacing_mm, cfg.units)}\n"
+                f"├─ Gap: {display_length(cfg.track_to_via_gap_mm, cfg.units)}\n"
+                f"├─ Via diameter: {display_length(cfg.via_diameter_mm, cfg.units)}\n"
+                f"├─ Via drill: {display_length(cfg.via_drill_mm, cfg.units)}\n"
                 f"└─ Group: ViaFence ({net_name})",
                 "ViaFence - Statistics",
                 wx.OK | wx.ICON_INFORMATION
