@@ -1,7 +1,7 @@
 {
 "name": "ViaFence",
 "description": "Place via fence along selected tracks for EMI shielding. Supports branches, T-junctions, arcs and corner optimization.",
-"version": "1.0.0",
+"version": "1.0.1",
 "author": "ozzy_sv",
 "license": "GPL-3.0",
 "homepage": "https://github.com/ozzysv",
