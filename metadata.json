@@ -1,25 +1,21 @@
-{
-    "identifier": "com.ozzysv.viafence",
-    "name": "ViaFence",
-    "description": "Place via fence along selected tracks for EMI shielding",
-    "version": "1.0.1",
-    "author": "ozzysv",
-    "homepage": "https://github.com/ozzysv",
-    "repository": "https://github.com/ozzysv/ViaFence",
-    "kicad_version": "9.0", "10.0",
-    "runtime": {
-        "type": "python",
-        "min_version": "3.9"
-    },
-    "actions": [
-        {
-            "identifier": "com.ozzysv.viafence",
-            "name": "ViaFence",
-            "description": "Place vias along selected tracks",
-            "show-button": true,
-            "scopes": ["pcb"],
-            "entrypoint": "via_fence.py",
-            "icons-light": ["via_fence_icon.png"]
-        }
-    ]
+  "name": "ViaFence",
+  "description": "Place via fence along selected tracks for EMI shielding",
+  "description_full": "Advanced via fence generator for KiCad 9.",
+  "identifier": "com.ozzysv.viafence",
+  "type": "plugin",
+  "author": "Sergiy Ozymok",
+  "license": "GPL-3.0",
+  "resources": {
+    "homepage": "https://github.com/ozzysv/ViaFence",
+    "repository": "https://github.com/ozzysv/ViaFence"
+  },
+  "versions": [
+    {
+      "version": "1.0.1",
+      "status": "stable",
+      "kicad_version": ["9.0", "10.0"],
+      "download_url": "https://github.com/ozzysv/ViaFence/releases/download/1.0.1/via_fence_1.0.1.zip",
+      "download_sha256": ""
+    }
+  ]
 }
