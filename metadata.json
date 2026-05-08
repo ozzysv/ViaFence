@@ -1,23 +1,25 @@
 {
-"name": "ViaFence",
-"description": "Place via fence along selected tracks for EMI shielding. Supports branches, T-junctions, arcs and corner optimization.",
-"version": "1.0.1",
-"author": "ozzy_sv",
-"license": "GPL-3.0",
-"homepage": "https://github.com/ozzysv",
-"repository": "https://github.com/ozzysv/ViaFence",
-"tags": [
-"pcb",
-"kicad",
-"via",
-"emi",
-"shielding",
-"rf",
-"routing"
-],
-"kicad_version": "9.0", "10.0",
-"type": "plugin",
-"resources": {
-"icon": "via_fence_icon.png"
-}
+    "identifier": "com.ozzysv.viafence",
+    "name": "ViaFence",
+    "description": "Place via fence along selected tracks for EMI shielding",
+    "version": "1.0.1",
+    "author": "ozzysv",
+    "homepage": "https://github.com/ozzysv",
+    "repository": "https://github.com/ozzysv/ViaFence",
+    "kicad_version": "9.0", "10.0",
+    "runtime": {
+        "type": "python",
+        "min_version": "3.9"
+    },
+    "actions": [
+        {
+            "identifier": "com.ozzysv.viafence",
+            "name": "ViaFence",
+            "description": "Place vias along selected tracks",
+            "show-button": true,
+            "scopes": ["pcb"],
+            "entrypoint": "via_fence.py",
+            "icons-light": ["via_fence_icon.png"]
+        }
+    ]
 }
