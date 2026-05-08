@@ -15,7 +15,7 @@
       "status": "stable",
       "kicad_version": ["9.0", "10.0"],
       "download_url": "https://github.com/ozzysv/ViaFence/releases/download/1.0.1/via_fence_1.0.1.zip",
-      "download_sha256": ""
+      "download_sha256": "E79947FB8E98135812FF3E16AF762C07D9B16C6A9E2646B76EA2DF146E2A869F"
     }
   ]
 }
