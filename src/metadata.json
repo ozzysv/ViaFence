@@ -3,10 +3,10 @@
     "name": "ViaFence",
     "description": "Place via fence along selected tracks for EMI shielding",
     "version": "1.0.1",
-    "author": "ozzysv",
+    "author": "Sergiy Ozymok",
     "homepage": "https://github.com/ozzysv",
     "repository": "https://github.com/ozzysv/ViaFence",
-    "kicad_version": "9.0", "10.0",
+    "kicad_version": ["9.0", "10.0"],
     "runtime": {
         "type": "python",
         "min_version": "3.9"
