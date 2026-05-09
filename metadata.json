@@ -1,8 +1,8 @@
 {
   "name": "ViaFence",
   "description": "Place via fence along selected tracks for EMI shielding",
-  "description_full": "Advanced via fence generator for KiCad 9.",
-  "identifier": "com.ozzysv.viafence",
+  "description_full": "ViaFence is a KiCad 9 and KiCad 10 Action Plugin that places via fences along selected tracks and arcs for EMI shielding, RF grounding, and improved return-current control. The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops",
+  "identifier": "com.github.ozzysv.viafence",
   "type": "plugin",
 
   "author": {
@@ -26,10 +26,14 @@
 
       "kicad_version": "9.0",
       "kicad_version_max": "10.0",
+	 
+	 "download_size": 36140,
+	 
+	 "install_size": 93085,
 
       "download_url": "https://github.com/ozzysv/ViaFence/releases/download/1.0.1/via_fence_1.0.1.zip",
 
-      "download_sha256": "6d3bc6d68d075371161866fb54d4f1fbb4049d9754c50d6af6ee758ff21201fd"
+      "download_sha256": "8d7f4931ae09a5ea0c9e630892df9e1329dbb9a0ecc4a3714b2afc942fcb540d"
     }
   ]
 }
