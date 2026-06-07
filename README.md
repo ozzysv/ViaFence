@@ -12,7 +12,7 @@ The plugin can follow complex selected copper geometry, including continuous tra
 
 <img src="doc/demo 1.0.2_b.gif" width="500"/>
 
-## Demo 1.0.0
+## Demo 1.0.1
 
 <img src="doc/demo.gif" width="500"/>
 
