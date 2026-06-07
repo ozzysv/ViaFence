@@ -5,8 +5,10 @@
 The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops.
 
 ---
+## Demo 1.0.2
+<img src="doc/demo 1.0.2.gif" width="500"/>
 
-## Demo
+## Demo 1.0.0
 <img src="doc/demo.gif" width="500"/>
 
 ## Features
