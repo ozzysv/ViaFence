@@ -30,7 +30,6 @@ This release improves via placement along connected tracks and arcs and adds mor
 
 This approach avoids unwanted interactions between vias belonging to opposite fence rows or nearby geometry while providing more predictable spacing along connected tracks and arcs.
 
-Compatible with KiCad 9 and KiCad 10.
 ---
 
 ## Demo 1.0.2
