@@ -25,7 +25,7 @@ class ViaFenceConfig:
     """Configuration for via fence placement"""
     def __init__(self, spacing_mm=1.0, pad_spacing_mm=1.0, track_to_via_gap_mm=0.25, 
                  via_diameter_mm=0.6, via_drill_mm=0.3, 
-                 end_margin_mm=0.5, staggered=False, net_name="",
+                 end_margin_mm=0.5, staggered=False, disable_aa=True, net_name="",
                  show_stats=True, place_at_corners=True, corner_angle_deg=50, units="mm",
                  window_pos_x=None, window_pos_y=None):
         # spacing_mm is kept as the saved/backward-compatible track spacing value.
@@ -36,6 +36,7 @@ class ViaFenceConfig:
         self.via_drill_mm = via_drill_mm
         self.end_margin_mm = end_margin_mm
         self.staggered = staggered
+        self.disable_aa = disable_aa
         self.net_name = net_name
         self.show_stats = show_stats
         self.place_at_corners = place_at_corners
@@ -47,7 +48,7 @@ class ViaFenceConfig:
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "via_fence_cfg.json")
 VIA_TIMESTAMP = 55  # Special timestamp to identify vias created by this plugin
-PLUGIN_VERSION = "1.0.2"
+PLUGIN_VERSION = "1.0.3"
 MM_PER_MIL = 0.0254
 
 def mm_to_mils(value_mm):
@@ -89,6 +90,7 @@ def load_config():
                     via_drill_mm=data.get("via_drill_mm", 0.3),
                     end_margin_mm=data.get("end_margin_mm", 0.5),
                     staggered=data.get("staggered", False),
+                    disable_aa=data.get("disable_aa", False),
                     net_name=data.get("net_name", ""),
                     show_stats=data.get("show_stats", True),
                     place_at_corners=data.get("place_at_corners", True),
@@ -114,6 +116,7 @@ def save_config(cfg):
                 "via_drill_mm": cfg.via_drill_mm,
                 "end_margin_mm": cfg.end_margin_mm,
                 "staggered": cfg.staggered,
+                "disable_aa": cfg.disable_aa,
                 "net_name": cfg.net_name,
                 "show_stats": cfg.show_stats,
                 "place_at_corners": cfg.place_at_corners,
@@ -190,6 +193,8 @@ class ViaFenceDialog(wx.Dialog):
         self.via_diam = wx.TextCtrl(self, value=format_unit_value(cfg.via_diameter_mm))
         self.drill = wx.TextCtrl(self, value=format_unit_value(cfg.via_drill_mm))
         self.margin = wx.TextCtrl(self, value=format_unit_value(cfg.end_margin_mm))
+        self.disable_aa = wx.CheckBox(self, label="Enable AA")
+        self.disable_aa.SetValue(cfg.disable_aa)
         self.staggered = wx.CheckBox(self, label="Staggered pattern (alternating sides)")
         self.staggered.SetValue(cfg.staggered)
         
@@ -211,9 +216,13 @@ class ViaFenceDialog(wx.Dialog):
         self.unit_mils.Bind(wx.EVT_RADIOBUTTON, self.on_unit_changed)
         
         # Help text for staggered pattern
+        aa_help_text = wx.StaticText(self, label="  Enable aggressive placement algorithms")
+        aa_help_text.SetForegroundColour(wx.Colour(100, 100, 100))
+        help_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        aa_help_text.SetFont(help_font)
+
         help_text = wx.StaticText(self, label="  Staggered: places one via per position, alternating left/right")
         help_text.SetForegroundColour(wx.Colour(100, 100, 100))
-        help_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         help_text.SetFont(help_font)
         
         # Net selection
@@ -253,6 +262,66 @@ class ViaFenceDialog(wx.Dialog):
         ]
         self._unit_controls = [self.spacing, self.pad_spacing, self.gap, self.via_diam, self.drill, self.margin]
 
+        # Standard wxWidgets tooltips.  No custom timer/delay is used, so the
+        # operating system / wxWidgets controls when the tooltip appears and
+        # hides it automatically when the pointer leaves the control.
+        def set_tip(ctrl, text):
+            ctrl.SetToolTip(text)
+
+        set_tip(self.spacing_label,
+                "Center-to-center spacing between regular fence vias along the selected track/arc path.")
+        set_tip(self.spacing,
+                "Center-to-center spacing between regular fence vias along the selected track/arc path.")
+
+        set_tip(self.pad_spacing_label,
+                "Target spacing between vias placed around pads.")
+        set_tip(self.pad_spacing,
+                "Target spacing between vias placed around pads.")
+
+        set_tip(self.gap_label,
+                "Clearance from the edge of the selected track to the edge of the fence via.")
+        set_tip(self.gap,
+                "Clearance from the edge of the selected track to the edge of the fence via.")
+
+        set_tip(self.via_diam_label,
+                "Overall diameter of each generated via.")
+        set_tip(self.via_diam,
+                "Overall diameter of each generated via.")
+
+        set_tip(self.drill_label,
+                "Drill-hole diameter of each generated via.")
+        set_tip(self.drill,
+                "Drill-hole diameter of each generated via.")
+
+        set_tip(self.margin_label,
+                "Distance kept free from the beginning and end of each continuous fence path.")
+        set_tip(self.margin,
+                "Distance kept free from the beginning and end of each continuous fence path.")
+
+        set_tip(self.disable_aa,
+                "Enable aggressive placement algorithms. Allows fallback position shifts and gap-filling passes when regular placement leaves gaps.")
+        set_tip(aa_help_text,
+                "Enable aggressive placement algorithms. Allows fallback position shifts and gap-filling passes when regular placement leaves gaps.")
+
+        set_tip(self.staggered,
+                "Place one via at each station and alternate between the two sides of the path instead of placing paired vias.")
+        set_tip(help_text,
+                "Place one via at each station and alternate between the two sides of the path instead of placing paired vias.")
+
+        set_tip(self.place_corners,
+                "Add dedicated vias near qualifying outside corners of the selected path.")
+        set_tip(self.corner_angle,
+                "Minimum corner angle, in degrees, at which the corner-via rule is applied.")
+
+        set_tip(self.net_choice,
+                "Electrical net assigned to all generated fence vias.")
+        set_tip(self.unit_mm,
+                "Display and enter dimensional values in millimetres.")
+        set_tip(self.unit_mils,
+                "Display and enter dimensional values in mils (1 mil = 0.001 inch).")
+        set_tip(self.show_stats,
+                "Show a summary of the generated vias and placement settings after execution.")
+
         self.apply_initial_units()
         self.update_unit_labels()
 
@@ -282,6 +351,8 @@ class ViaFenceDialog(wx.Dialog):
         line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
         vbox.Add(line, 0, wx.EXPAND | wx.ALL, 10)
         
+        vbox.Add(self.disable_aa, 0, wx.ALL, 5)
+        vbox.Add(aa_help_text, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vbox.Add(self.staggered, 0, wx.ALL, 5)
         vbox.Add(help_text, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         
@@ -390,6 +461,7 @@ class ViaFenceDialog(wx.Dialog):
             via_drill_mm=via_drill_mm,
             end_margin_mm=end_margin_mm,
             staggered=self.staggered.GetValue(),
+            disable_aa=self.disable_aa.GetValue(),
             net_name=net_name,
             show_stats=self.show_stats.GetValue(),
             place_at_corners=self.place_corners.GetValue(),
@@ -2302,6 +2374,252 @@ class ViaFencePlugin(pcbnew.ActionPlugin):
             return local_via_index
 
 
+        # ------------------------------------------------------------------
+        # Continuous native-path placement
+        # ------------------------------------------------------------------
+        # Selected PCB_TRACK / PCB_ARC items are first ordered into continuous
+        # native chains.  Via stations are then generated against the cumulative
+        # length of the WHOLE chain, so the spacing phase is not restarted at
+        # every KiCad segment boundary.
+        def build_native_item_chains(selected_items):
+            graph = {}
+            edges = []
+
+            for item in selected_items:
+                if not isinstance(item, (pcbnew.PCB_ARC, pcbnew.PCB_TRACK)):
+                    continue
+                try:
+                    a = point_key(item.GetStart())
+                    b = point_key(item.GetEnd())
+                except Exception:
+                    continue
+                if a == b:
+                    continue
+                edge_id = len(edges)
+                edges.append((a, b, item))
+                graph.setdefault(a, []).append((b, edge_id))
+                graph.setdefault(b, []).append((a, edge_id))
+
+            used = set()
+            chains = []
+
+            def trace(start, first_next, first_edge):
+                chain = []
+                cur = start
+                nxt = first_next
+                eid = first_edge
+                while True:
+                    if eid in used:
+                        break
+                    used.add(eid)
+                    a, b, item = edges[eid]
+                    # True means item native start -> native end.
+                    forward = (cur == a and nxt == b)
+                    chain.append((item, forward))
+                    prev, cur = cur, nxt
+
+                    # Stop at an endpoint or junction.  Degree-2 nodes continue
+                    # the same logical route regardless of item selection order.
+                    if len(graph.get(cur, [])) != 2:
+                        break
+                    candidates = [(nn, ee) for nn, ee in graph[cur]
+                                  if ee not in used]
+                    if not candidates:
+                        break
+                    nxt, eid = candidates[0]
+                return chain
+
+            # Open chains and individual branches first.
+            terminals = [node for node, adj in graph.items() if len(adj) != 2]
+            for node in sorted(terminals):
+                for nxt, eid in graph.get(node, []):
+                    if eid in used:
+                        continue
+                    chain = trace(node, nxt, eid)
+                    if chain:
+                        chains.append(chain)
+
+            # Remaining degree-2 components are closed loops.
+            for eid, (a, b, _item) in enumerate(edges):
+                if eid in used:
+                    continue
+                chain = trace(a, b, eid)
+                if chain:
+                    chains.append(chain)
+
+            return chains
+
+        def exact_chain_positions(total_len, requested_spacing, end_margin):
+            """Exact requested pitch, centred once over the whole chain."""
+            if total_len <= 1e-6:
+                return []
+            usable = total_len - 2.0 * end_margin
+            if usable < 0:
+                return [total_len / 2.0]
+            if requested_spacing <= 1e-6:
+                return [max(0.0, min(total_len, end_margin))]
+
+            intervals = int(math.floor(usable / requested_spacing))
+            if intervals <= 0:
+                return [total_len / 2.0]
+
+            span = intervals * requested_spacing
+            # Balance only the unused remainder at the TWO ends of the complete
+            # chain.  The pitch between all generated stations remains exact.
+            start = end_margin + (usable - span) / 2.0
+            return [start + i * requested_spacing for i in range(intervals + 1)]
+
+        def oriented_native_primitive(item, forward, side):
+            """
+            Return one offset primitive for a chain side.
+
+            side = +1 means left of the oriented centreline, -1 means right.
+            Result is a dict with exact offset-path length and point_at(distance).
+            """
+            local_track_width = item.GetWidth() if hasattr(item, 'GetWidth') else track_width
+            local_offset = offset + radius + local_track_width / 2.0
+
+            if isinstance(item, pcbnew.PCB_ARC):
+                geom = get_arc_geometry(item)
+                if geom is not None:
+                    cx, cy, r0, a0, sw0 = geom
+                    if forward:
+                        a_start = a0
+                        sw = sw0
+                    else:
+                        a_start = a0 + sw0
+                        sw = -sw0
+
+                    sw_sign = 1 if sw >= 0 else -1
+                    # Left side of CCW motion is toward the circle centre;
+                    # left side of CW motion is away from it.
+                    r_side = r0 - sw_sign * side * local_offset
+                    if r_side <= radius:
+                        return None
+                    length = abs(sw) * r_side
+
+                    def point_at(d, _cx=cx, _cy=cy, _r=r_side,
+                                 _a=a_start, _sgn=sw_sign):
+                        ang = _a + _sgn * (d / _r)
+                        return (_cx + math.cos(ang) * _r,
+                                _cy + math.sin(ang) * _r)
+
+                    return {"length": length, "point_at": point_at, "item": item}
+
+            # Straight fallback (also used for a degenerate arc).
+            p_native_a = item.GetStart()
+            p_native_b = item.GetEnd()
+            p0, p1 = (p_native_a, p_native_b) if forward else (p_native_b, p_native_a)
+            dx = float(p1.x - p0.x)
+            dy = float(p1.y - p0.y)
+            length = math.hypot(dx, dy)
+            if length <= 1e-6:
+                return None
+            ux, uy = dx / length, dy / length
+            nx, ny = -uy, ux
+            ox = nx * local_offset * side
+            oy = ny * local_offset * side
+
+            def point_at(d, _x=float(p0.x), _y=float(p0.y),
+                         _ux=ux, _uy=uy, _ox=ox, _oy=oy):
+                return (_x + _ux * d + _ox,
+                        _y + _uy * d + _oy)
+
+            return {"length": length, "point_at": point_at, "item": item}
+
+        def place_continuous_chain_side(chain, side):
+            """Place one complete left/right fence row with one global phase."""
+            nonlocal skipped_candidates
+            primitives = []
+            total = 0.0
+            for item, forward in chain:
+                prim = oriented_native_primitive(item, forward, side)
+                if prim is None or prim["length"] <= 1e-6:
+                    continue
+                prim["start"] = total
+                total += prim["length"]
+                prim["end"] = total
+                primitives.append(prim)
+
+            if not primitives:
+                return 0
+
+            stations = exact_chain_positions(total, spacing, margin)
+            placed = 0
+            prim_idx = 0
+            # AA enabled (Disable AA unchecked): keep exact global stations
+            # and never let obstacle retries move vias.  Disable AA restores
+            # the legacy adjustment behaviour for visual comparison.
+            strict_spacing = not cfg.disable_aa
+
+            for station in stations:
+                while prim_idx + 1 < len(primitives) and station > primitives[prim_idx]["end"] + 0.5:
+                    prim_idx += 1
+                prim = primitives[prim_idx]
+                local_d = max(0.0, min(prim["length"], station - prim["start"]))
+                x, y = prim["point_at"](local_d)
+
+                # In strict mode the global station itself is authoritative: do
+                # not shift it, because shifting destroys the requested pitch.
+                # For dense legacy mode keep a small retry window for obstacles.
+                shifts = [0.0] if strict_spacing else retry_shifts(spacing, 0.55)
+                ok = False
+                for shift in shifts:
+                    d2 = station + shift
+                    if d2 < 0 or d2 > total:
+                        continue
+
+                    # Re-resolve the primitive only when a dense-mode retry moves
+                    # the station across a segment boundary.
+                    if shift == 0:
+                        p2 = prim
+                        local2 = local_d
+                    else:
+                        p2 = None
+                        for candidate in primitives:
+                            if candidate["start"] - 0.5 <= d2 <= candidate["end"] + 0.5:
+                                p2 = candidate
+                                break
+                        if p2 is None:
+                            continue
+                        local2 = max(0.0, min(p2["length"], d2 - p2["start"]))
+                    xx, yy = p2["point_at"](local2)
+                    if try_place_regular_via(xx, yy):
+                        ok = True
+                        placed += 1
+                        break
+                if not ok:
+                    skipped_candidates += 1
+
+            return placed
+
+        def place_continuous_native_chains(local_via_index):
+            """
+            Place vias around ordered native chains rather than around each
+            selected KiCad segment independently.
+            """
+            chains = build_native_item_chains(selected)
+            if not chains:
+                return local_via_index
+
+            if cfg.staggered:
+                # Staggered mode alternates physical sides at each logical
+                # centreline station and therefore needs different semantics.
+                # Keep the proven native per-item implementation for now.
+                for item in selected:
+                    if isinstance(item, pcbnew.PCB_ARC):
+                        local_via_index = place_on_arc_native(item, local_via_index)
+                    elif isinstance(item, pcbnew.PCB_TRACK):
+                        local_via_index = place_on_track_segment(item, local_via_index)
+                return local_via_index
+
+            for chain in chains:
+                place_continuous_chain_side(chain, -1)
+                place_continuous_chain_side(chain, 1)
+                # Index is informational in dual-side mode.
+                local_via_index += 1
+            return local_via_index
+
         def endpoint_normal_candidates(item, endpoint_key):
             """Return candidate outward normals at one endpoint of a selected item.
 
@@ -2782,18 +3100,18 @@ class ViaFencePlugin(pcbnew.ActionPlugin):
                 except Exception:
                     continue
 
-        for item in selected:
-            # Important: PCB_ARC must be checked before PCB_TRACK because some
-            # KiCad SWIG builds expose arcs as track-derived classes.
-            if isinstance(item, pcbnew.PCB_ARC):
-                via_index = place_on_arc_native(item, via_index)
-            elif isinstance(item, pcbnew.PCB_TRACK):
-                via_index = place_on_track_segment(item, via_index)
+        # Treat all connected selected native segments as continuous routes.
+        # This keeps one spacing phase through TRACK<->TRACK, TRACK<->ARC and
+        # ARC<->ARC boundaries instead of restarting at every KiCad item.
+        via_index = place_continuous_native_chains(via_index)
 
-        # Fill small visual holes at smooth selected-item junctions.
-        fill_transition_gaps()
-        fill_large_local_gaps()
-        fill_largest_row_gaps()
+        # AA enabled (Disable AA unchecked): do not run any legacy gap-fill.
+        # Disable AA deliberately restores all three legacy gap-fill passes
+        # together with legacy retry shifts for visual comparison.
+        if cfg.disable_aa:
+            fill_transition_gaps()
+            fill_large_local_gaps()
+            fill_largest_row_gaps()
 
         if created_vias:
             group = pcbnew.PCB_GROUP(board)
