@@ -4,6 +4,33 @@
 
 The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops. It can also create via rings around selected pads.
 
+
+## кelease 1.0.3
+This release improves via placement along connected tracks and arcs and adds more control over aggressive placement behavior.
+
+### What's changed
+
+- Added continuous via placement across connected TRACK and ARC objects.
+- Via spacing is now calculated along the complete continuous path instead of restarting on every individual segment.
+- Improved spacing consistency at track-to-arc and arc-to-track transitions.
+- Added **Enable AA (Aggressive Placement Algorithms)** option.
+- With AA disabled:
+  - vias follow the regular continuous-path spacing;
+  - candidate position shifting is disabled;
+  - automatic gap-fill passes are disabled.
+- With AA enabled:
+  - additional placement attempts and position shifts are allowed;
+  - gap-fill algorithms can insert additional vias where necessary.
+- Added tooltips with descriptions for plugin options.
+- Various placement and UI improvements.
+
+### Notes
+
+`Via spacing track` represents the desired pitch along the via-fence path rather than a global minimum Euclidean distance between all vias.
+
+This approach avoids unwanted interactions between vias belonging to opposite fence rows or nearby geometry while providing more predictable spacing along connected tracks and arcs.
+
+Compatible with KiCad 9 and KiCad 10.
 ---
 
 ## Demo 1.0.2
