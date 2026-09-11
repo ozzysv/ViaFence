@@ -5,7 +5,7 @@
 The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops. It can also create via rings around selected pads.
 
 
-## кelease 1.0.3
+## Release 1.0.3
 This release improves via placement along connected tracks and arcs and adds more control over aggressive placement behavior.
 
 ### What's changed
