@@ -25,7 +25,7 @@ class ViaFenceConfig:
     """Configuration for via fence placement"""
     def __init__(self, spacing_mm=1.0, pad_spacing_mm=1.0, track_to_via_gap_mm=0.25, 
                  via_diameter_mm=0.6, via_drill_mm=0.3, 
-                 end_margin_mm=0.5, staggered=False, disable_aa=True, net_name="",
+                 end_margin_mm=0.5, staggered=False, enable_aa=False, net_name="",
                  show_stats=True, place_at_corners=True, corner_angle_deg=50, units="mm",
                  window_pos_x=None, window_pos_y=None):
         # spacing_mm is kept as the saved/backward-compatible track spacing value.
@@ -36,7 +36,7 @@ class ViaFenceConfig:
         self.via_drill_mm = via_drill_mm
         self.end_margin_mm = end_margin_mm
         self.staggered = staggered
-        self.disable_aa = disable_aa
+        self.enable_aa = enable_aa
         self.net_name = net_name
         self.show_stats = show_stats
         self.place_at_corners = place_at_corners
@@ -90,7 +90,7 @@ def load_config():
                     via_drill_mm=data.get("via_drill_mm", 0.3),
                     end_margin_mm=data.get("end_margin_mm", 0.5),
                     staggered=data.get("staggered", False),
-                    disable_aa=data.get("disable_aa", False),
+                    enable_aa=data.get("enable_aa", False),
                     net_name=data.get("net_name", ""),
                     show_stats=data.get("show_stats", True),
                     place_at_corners=data.get("place_at_corners", True),
@@ -116,7 +116,7 @@ def save_config(cfg):
                 "via_drill_mm": cfg.via_drill_mm,
                 "end_margin_mm": cfg.end_margin_mm,
                 "staggered": cfg.staggered,
-                "disable_aa": cfg.disable_aa,
+                "enable_aa": cfg.enable_aa,
                 "net_name": cfg.net_name,
                 "show_stats": cfg.show_stats,
                 "place_at_corners": cfg.place_at_corners,
@@ -193,8 +193,8 @@ class ViaFenceDialog(wx.Dialog):
         self.via_diam = wx.TextCtrl(self, value=format_unit_value(cfg.via_diameter_mm))
         self.drill = wx.TextCtrl(self, value=format_unit_value(cfg.via_drill_mm))
         self.margin = wx.TextCtrl(self, value=format_unit_value(cfg.end_margin_mm))
-        self.disable_aa = wx.CheckBox(self, label="Enable AA")
-        self.disable_aa.SetValue(cfg.disable_aa)
+        self.enable_aa = wx.CheckBox(self, label="Enable AA")
+        self.enable_aa.SetValue(cfg.enable_aa)
         self.staggered = wx.CheckBox(self, label="Staggered pattern (alternating sides)")
         self.staggered.SetValue(cfg.staggered)
         
@@ -298,7 +298,7 @@ class ViaFenceDialog(wx.Dialog):
         set_tip(self.margin,
                 "Distance kept free from the beginning and end of each continuous fence path.")
 
-        set_tip(self.disable_aa,
+        set_tip(self.enable_aa,
                 "Enable aggressive placement algorithms. Allows fallback position shifts and gap-filling passes when regular placement leaves gaps.")
         set_tip(aa_help_text,
                 "Enable aggressive placement algorithms. Allows fallback position shifts and gap-filling passes when regular placement leaves gaps.")
@@ -351,7 +351,7 @@ class ViaFenceDialog(wx.Dialog):
         line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
         vbox.Add(line, 0, wx.EXPAND | wx.ALL, 10)
         
-        vbox.Add(self.disable_aa, 0, wx.ALL, 5)
+        vbox.Add(self.enable_aa, 0, wx.ALL, 5)
         vbox.Add(aa_help_text, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vbox.Add(self.staggered, 0, wx.ALL, 5)
         vbox.Add(help_text, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -461,7 +461,7 @@ class ViaFenceDialog(wx.Dialog):
             via_drill_mm=via_drill_mm,
             end_margin_mm=end_margin_mm,
             staggered=self.staggered.GetValue(),
-            disable_aa=self.disable_aa.GetValue(),
+            enable_aa=self.enable_aa.GetValue(),
             net_name=net_name,
             show_stats=self.show_stats.GetValue(),
             place_at_corners=self.place_corners.GetValue(),
@@ -2550,7 +2550,7 @@ class ViaFencePlugin(pcbnew.ActionPlugin):
             # AA enabled (Disable AA unchecked): keep exact global stations
             # and never let obstacle retries move vias.  Disable AA restores
             # the legacy adjustment behaviour for visual comparison.
-            strict_spacing = not cfg.disable_aa
+            strict_spacing = not cfg.enable_aa
 
             for station in stations:
                 while prim_idx + 1 < len(primitives) and station > primitives[prim_idx]["end"] + 0.5:
@@ -3108,7 +3108,7 @@ class ViaFencePlugin(pcbnew.ActionPlugin):
         # AA enabled (Disable AA unchecked): do not run any legacy gap-fill.
         # Disable AA deliberately restores all three legacy gap-fill passes
         # together with legacy retry shifts for visual comparison.
-        if cfg.disable_aa:
+        if cfg.enable_aa:
             fill_transition_gaps()
             fill_large_local_gaps()
             fill_largest_row_gaps()
