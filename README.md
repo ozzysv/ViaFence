@@ -8,8 +8,6 @@
 
 It is designed for EMI shielding, RF grounding, and improved return-current control. ViaFence analyzes selected copper geometry as a unified path and supports continuous tracks, segmented traces, arcs, T-junctions, multiple branches, and closed loops. It can also create via rings around selected pads.
 
-Via spacing, pad spacing, track-to-via gap, via diameter, drill size, end margin, target net, units, corner-via placement, optional staggered placement, and execution statistics can be configured directly from the plugin dialog.
-
 ![ViaFence Logo](src/via_fence_icon.png)
 
 
