@@ -12,7 +12,7 @@ It is designed for EMI shielding, RF grounding, and improved return-current cont
 
 <img src="doc/test_n3.gif" /> 
 
-<img src="doc/test_n2.gif" "/>
+<img src="doc/test_n2.gif"/>
 
 
 ## Release 1.1.0
