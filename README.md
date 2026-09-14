@@ -28,12 +28,16 @@ This release introduces a major rework of the via-placement algorithm and improv
 
 ViaFence now processes selected copper in two main steps:
 
-1. The selected tracks and arcs are analyzed and connected into one or more continuous paths.
+1. The selected tracks, arcs, and pad geometry are analyzed and combined into continuous copper-boundary paths.
 2. Via positions are calculated along those reconstructed paths using the configured spacing and offset values.
 
 This means that connected PCB elements are no longer treated as isolated segments during normal placement. The plugin first reconstructs the geometry as a continuous route and only then distributes vias along it.
 
-As a result, via spacing remains much more consistent across segment boundaries, arcs, and other connected geometry.
+For selected pads, including circular pads, the pad boundary is included in the same geometry-processing approach. The via-center path is generated outside the real copper boundary using the configured **Track to via gap** plus the via radius. This allows vias to follow the pad outline instead of using a simple center-based approximation.
+
+For closed contours, such as the path around a circular pad, ViaFence adjusts the number of vias so they are distributed evenly around the complete perimeter. The algorithm prefers an actual spacing within **±5%** of the requested **Via spacing** value. If an exact integer division within this tolerance is not possible, it selects the closest available spacing. This also ensures that the closing gap between the last and first via is the same as the other gaps around the contour.
+
+As a result, via spacing remains much more consistent across segment boundaries, arcs, pad contours, and other connected geometry.
 
 ---
 
