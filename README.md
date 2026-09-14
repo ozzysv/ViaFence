@@ -10,8 +10,6 @@ It is designed for EMI shielding, RF grounding, and improved return-current cont
 
 Via spacing, pad spacing, track-to-via gap, via diameter, drill size, end margin, target net, units, corner-via placement, optional staggered placement, and execution statistics can be configured directly from the plugin dialog.
 
-![ViaFence Logo](src/via_fence_icon.png)
-
 
 ## Release 1.0.3
 This release improves via placement along connected tracks and arcs and adds more control over aggressive placement behavior.
