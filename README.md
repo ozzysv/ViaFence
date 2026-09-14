@@ -35,7 +35,7 @@ This means that connected PCB elements are no longer treated as isolated segment
 
 For selected pads, including circular pads, the pad boundary is included in the same geometry-processing approach. The via-center path is generated outside the real copper boundary using the configured **Track to via gap** plus the via radius. This allows vias to follow the pad outline instead of using a simple center-based approximation.
 
-For closed contours, such as the path around a circular pad, ViaFence adjusts the number of vias so they are distributed evenly around the complete perimeter. The algorithm prefers an actual spacing within ±5% of the requested value. If this is not possible with an integer number of evenly distributed vias, the closest available spacing is used so that all gaps, including the closing gap, remain equal. If an exact integer division within this tolerance is not possible, it selects the closest available spacing. This also ensures that the closing gap between the last and first via is the same as the other gaps around the contour.
+For closed contours, such as the path around a circular pad, ViaFence adjusts the number of vias so they are distributed evenly around the complete perimeter. The algorithm prefers an actual spacing within ±5% of the requested value. If this is not possible with an integer number of evenly distributed vias, the closest available spacing is used so that all gaps, including the closing gap, remain equal. This also ensures that the closing gap between the last and first via is the same as the other gaps around the contour.
 
 As a result, via spacing remains much more consistent across segment boundaries, arcs, pad contours, and other connected geometry.
 
