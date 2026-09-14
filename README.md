@@ -1,8 +1,16 @@
-# ![ViaFence Logo](src/via_fence_icon.png) ViaFence for KiCad 9 and 10
+# ViaFence
 
-**ViaFence** is a KiCad 9 and KiCad 10 Action Plugin that places via fences along selected tracks, arcs, and selected footprint pads for EMI shielding, RF grounding, and improved return-current control.
+![KiCad](https://img.shields.io/badge/KiCad-9.x%20%7C%2010.x-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+![License](https://img.shields.io/badge/license-GPL--3.0-blue)
 
-The plugin can follow complex selected copper geometry, including continuous tracks, arcs, T-junctions, multiple branches, and closed loops. It can also create via rings around selected pads.
+**ViaFence** is a KiCad 9 and KiCad 10 Action Plugin for automatically generating configurable via fences along selected tracks, arcs, and pads.
+
+It is designed for EMI shielding, RF grounding, and improved return-current control. ViaFence analyzes selected copper geometry as a unified path and supports continuous tracks, segmented traces, arcs, T-junctions, multiple branches, and closed loops. It can also create via rings around selected pads.
+
+Via spacing, pad spacing, track-to-via gap, via diameter, drill size, end margin, target net, units, corner-via placement, optional staggered placement, and execution statistics can be configured directly from the plugin dialog.
+
+![ViaFence Logo](src/via_fence_icon.png)
 
 
 ## Release 1.0.3
