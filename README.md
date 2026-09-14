@@ -64,18 +64,6 @@ This approach avoids unwanted interactions between vias belonging to opposite fe
 
 ---
 
-## Demo 1.0.2
-
-<img src="doc/demo 1.0.2.gif" width="500"/> 
-
-<img src="doc/demo 1.0.2_b.gif" width="500"/>
-
-## Demo 1.0.1
-
-<img src="doc/demo.gif" width="500"/>
-
----
-
 ## Features
 
 - Places via fences along selected PCB tracks and arcs
