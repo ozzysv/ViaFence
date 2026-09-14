@@ -1,17 +1,12 @@
-{ 
+{
   "spacing_mm": 1.0,
-  "track_spacing_mm": 1.0,
-  "pad_spacing_mm": 1.0,
   "track_to_via_gap_mm": 0.25,
   "via_diameter_mm": 0.6,
   "via_drill_mm": 0.3,
-  "end_margin_mm": 0.5,
   "staggered": false,
-  "net_name": "GND",
-  "show_stats": false,
-  "place_at_corners": true,
-  "corner_angle_deg": 50.0,
+  "net_name": "GNDD",
+  "show_stats": true,
   "units": "mm",
-  "window_pos_x": 176,
-  "window_pos_y": 216
+  "window_pos_x": 710,
+  "window_pos_y": 215
 }
