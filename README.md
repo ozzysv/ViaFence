@@ -10,6 +10,36 @@ It is designed for EMI shielding, RF grounding, and improved return-current cont
 
 Via spacing, pad spacing, track-to-via gap, via diameter, drill size, end margin, target net, units, corner-via placement, optional staggered placement, and execution statistics can be configured directly from the plugin dialog.
 
+![ViaFence Logo](src/via_fence_icon.png)
+
+
+## Release 1.1.0
+
+This release introduces a major rework of the via-placement algorithm and improves how ViaFence handles complex selected copper geometry.
+
+### What's changed
+
+- Reworked the core placement algorithm.
+- Selected tracks and arcs are now analyzed first and combined into continuous paths before any vias are placed.
+- Via spacing is then calculated along the reconstructed path instead of independently on each individual track or arc segment.
+- This significantly improves spacing consistency at segment junctions and track-to-arc transitions.
+- Improved handling of segmented traces, T-junctions, multiple branches, and closed loops.
+- Improved via placement around arcs and complex connected geometry.
+- Reduced dialog width and simplified the user interface.
+- Various code cleanups and stability improvements.
+
+### Placement algorithm
+
+ViaFence now processes selected copper in two main steps:
+
+1. The selected tracks and arcs are analyzed and connected into one or more continuous paths.
+2. Via positions are calculated along those reconstructed paths using the configured spacing and offset values.
+
+This means that connected PCB elements are no longer treated as isolated segments during normal placement. The plugin first reconstructs the geometry as a continuous route and only then distributes vias along it.
+
+As a result, via spacing remains much more consistent across segment boundaries, arcs, and other connected geometry.
+
+---
 
 ## Release 1.0.3
 This release improves via placement along connected tracks and arcs and adds more control over aggressive placement behavior.
